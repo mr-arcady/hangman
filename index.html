@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Hangman Arcade Hub</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        .btn-press:active { transform: scale(0.95); }
+        .hover-glow:hover { box-shadow: 0 0 20px rgba(34, 197, 94, 0.3); }
+        .hover-glow-blue:hover { box-shadow: 0 0 20px rgba(37, 99, 235, 0.3); }
+    </style>
+</head>
+<body class="bg-gray-900 text-white font-sans min-h-screen flex flex-col items-center justify-center p-6">
+
+    <div class="text-center mb-16">
+        <h1 class="text-7xl md:text-9xl font-black text-green-500 tracking-tighter italic mb-4">
+            HANGMAN
+        </h1>
+        <p class="text-gray-500 uppercase tracking-[0.4em] text-xs font-bold">Select Your Challenge</p>
+    </div>
+
+    <div class="w-full max-w-lg space-y-6">
+        
+        <a href="https://mr-arcady.github.io/hangman-pro/" 
+           class="btn-press hover-glow block bg-gray-800 border-2 border-green-600 p-8 rounded-2xl transition group">
+            <div class="flex flex-col items-center text-center">
+                <span class="text-green-500 font-black text-2xl uppercase tracking-tighter mb-1 group-hover:scale-105 transition-transform">
+                    Pro Mode
+                </span>
+                <span class="text-gray-400 font-bold text-sm uppercase tracking-widest">
+                    Face the Hangman
+                </span>
+            </div>
+        </a>
+
+        <a href="https://mr-arcady.github.io/hangman-pvp/" 
+           class="btn-press hover-glow-blue block bg-gray-800 border-2 border-blue-600 p-8 rounded-2xl transition group">
+            <div class="flex flex-col items-center text-center">
+                <span class="text-blue-500 font-black text-2xl uppercase tracking-tighter mb-1 group-hover:scale-105 transition-transform">
+                    PvP Mode
+                </span>
+                <span class="text-gray-400 font-bold text-sm uppercase tracking-widest">
+                    Play With Friends
+                </span>
+            </div>
+        </a>
+
+    </div>
+
+    <div class="mt-20 text-center">
+        <p class="text-[10px] text-gray-600 uppercase font-bold tracking-widest">
+            Developed for the Mr. Arcady Arcade
+        </p>
+    </div>
+
+</body>
+</html>
