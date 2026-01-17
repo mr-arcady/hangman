@@ -3,66 +3,38 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <meta name="color-scheme" content="dark light">
     <title>Hangman: Arcade</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
-        /* --- THEME ENGINE --- */
-        
-        /* 1. Base Defaults (Dark Mode) - This is the fallback if system is Dark or Unknown */
+        /* --- THEME ENGINE (Default = Dark) --- */
         :root {
-            --bg-primary: #111827; 
-            --bg-secondary: #1f2937; 
-            --text-primary: #ffffff; 
+            --bg-primary: #111827; /* Dark Gray */
+            --bg-secondary: #1f2937;
+            --text-primary: #ffffff;
             --text-secondary: #9ca3af;
-            --accent-success: #22c55e; 
-            --accent-fail: #ef4444; 
+            --accent-success: #22c55e; /* Green */
+            --accent-fail: #ef4444; /* Red */
             --border-color: #374151;
         }
 
-        /* 2. System Light Mode - Only activates if device explicitly says "I am Light" */
-        @media (prefers-color-scheme: light) {
-            :root {
-                --bg-primary: #f3f4f6; 
-                --bg-secondary: #ffffff;
-                --text-primary: #111827; 
-                --text-secondary: #4b5563;
-                --accent-success: #16a34a; 
-                --accent-fail: #dc2626; 
-                --border-color: #d1d5db;
-            }
-        }
-
-        /* 3. Manual Overrides (Applied via JS classes) */
-        
-        /* Force Light: Overrides everything */
-        body.force-light {
-            --bg-primary: #f3f4f6; 
+        /* Light Mode Override */
+        body.light-mode {
+            --bg-primary: #f3f4f6; /* Light Gray */
             --bg-secondary: #ffffff;
-            --text-primary: #111827; 
+            --text-primary: #111827;
             --text-secondary: #4b5563;
-            --accent-success: #16a34a; 
-            --accent-fail: #dc2626; 
+            --accent-success: #16a34a;
+            --accent-fail: #dc2626;
             --border-color: #d1d5db;
         }
 
-        /* Force Dark: Overrides everything (even if system is light) */
-        body.force-dark {
-            --bg-primary: #111827; 
-            --bg-secondary: #1f2937; 
-            --text-primary: #ffffff; 
-            --text-secondary: #9ca3af;
-            --accent-success: #22c55e; 
-            --accent-fail: #ef4444; 
-            --border-color: #374151;
-        }
-
-        /* 4. Accessibility Overrides (High Contrast) */
+        /* Accessibility Override */
         body.high-contrast {
-            --accent-success: #2563eb !important; 
-            --accent-fail: #ea580c !important; 
+            --accent-success: #2563eb !important; /* Blue */
+            --accent-fail: #ea580c !important; /* Orange */
             font-weight: 700;
         }
+        
         body.high-contrast .neutral-in-hc {
             border-color: var(--border-color) !important;
             color: var(--text-primary) !important;
@@ -70,14 +42,6 @@
         }
         body.high-contrast .neutral-in-hc:hover {
             background-color: var(--bg-primary) !important;
-        }
-
-        /* Dynamic Selected State */
-        .theme-selected {
-            border-width: 2px;
-            border-color: var(--accent-success) !important;
-            color: var(--accent-success) !important;
-            background-color: rgba(128, 128, 128, 0.1) !important;
         }
 
         /* Utilities */
@@ -89,12 +53,8 @@
         .theme-fail { color: var(--accent-fail); }
         .theme-border { border-color: var(--border-color); }
         
-        .theme-btn-success { background-color: var(--accent-success); color: white; }
-        .theme-btn-fail { background-color: var(--accent-fail); color: white; }
-
         .hidden { display: none !important; }
         .btn-press:active { transform: scale(0.95); }
-        .disabled-toggle { opacity: 0.5; pointer-events: none; }
         
         #settings-menu { transition: transform 0.3s ease-in-out; }
         .menu-open { transform: translateX(0) !important; }
@@ -115,18 +75,18 @@
             </div>
             
             <div class="space-y-6 flex-1">
-                <div>
-                    <span class="font-bold theme-text-sub block mb-3 text-xs uppercase tracking-widest">Theme</span>
-                    <div class="flex gap-2">
-                        <button onclick="setTheme('light')" id="btn-theme-light" class="flex-1 p-2 rounded text-xs font-bold border theme-border transition theme-text-sub hover:bg-white/5">Light</button>
-                        <button onclick="setTheme('dark')" id="btn-theme-dark" class="flex-1 p-2 rounded text-xs font-bold border theme-border transition theme-text-sub hover:bg-white/5">Dark</button>
-                        <button onclick="setTheme('system')" id="btn-theme-system" class="flex-1 p-2 rounded text-xs font-bold border theme-border transition theme-text-sub hover:bg-white/5">System</button>
-                    </div>
+                <div class="flex justify-between items-center">
+                    <span class="font-bold theme-text-sub">Light Mode</span>
+                    <button onclick="toggleLightMode()" id="btn-light" class="w-12 h-6 rounded-full bg-gray-600 relative transition">
+                        <div class="w-4 h-4 bg-white rounded-full absolute top-1 left-1 transition-all"></div>
+                    </button>
                 </div>
 
                 <div class="flex justify-between items-center">
                     <span class="font-bold theme-text-sub">Accessibility</span>
-                    <button onclick="toggleContrast()" id="btn-contrast" class="w-12 h-6 rounded-full bg-gray-600 relative transition"><div class="w-4 h-4 bg-white rounded-full absolute top-1 left-1 transition-all"></div></button>
+                    <button onclick="toggleContrast()" id="btn-contrast" class="w-12 h-6 rounded-full bg-gray-600 relative transition">
+                        <div class="w-4 h-4 bg-white rounded-full absolute top-1 left-1 transition-all"></div>
+                    </button>
                 </div>
 
                 <hr class="theme-border opacity-50">
@@ -184,61 +144,53 @@
             } catch(e) { return memStorage[key] || null; }
         }
 
-        // --- SIMPLIFIED THEME LOGIC ---
+        // --- SHARED THEME LOGIC ---
+        // This function runs on load. It checks 'h_theme_mode' (light/dark) 
+        // and 'h_contrast' (true/false) which are shared across all pages.
         function initTheme() {
             try {
-                const mode = safeGetStorage('h_theme_mode') || 'system';
+                const mode = safeGetStorage('h_theme_mode') || 'dark'; // Default to Dark
                 const isContrast = safeGetStorage('h_contrast') === 'true';
                 
-                applyTheme(mode);
-                updateThemeButtons(mode);
+                // Apply Light Mode if saved
+                if (mode === 'light') {
+                    document.body.classList.add('light-mode');
+                } else {
+                    document.body.classList.remove('light-mode');
+                }
 
+                // Apply High Contrast if saved
                 if(isContrast) document.body.classList.add('high-contrast');
-                updateContrastToggle();
+                
+                updateToggles(); // Update visual switch positions
             } catch(e) { console.log("Theme init error"); }
         }
 
-        function applyTheme(mode) {
-            // Clean slate
-            document.body.classList.remove('force-light', 'force-dark');
-
-            if (mode === 'light') {
-                document.body.classList.add('force-light');
-            } else if (mode === 'dark') {
-                document.body.classList.add('force-dark');
-            } 
-            // If 'system', we add NO classes. 
-            // The CSS @media (prefers-color-scheme) handles it natively.
+        function toggleLightMode() {
+            const isLight = document.body.classList.toggle('light-mode');
+            const newMode = isLight ? 'light' : 'dark';
+            safeSetStorage('h_theme_mode', newMode); // Persist across pages
+            updateToggles();
         }
 
-        function setTheme(mode) {
-            safeSetStorage('h_theme_mode', mode);
-            applyTheme(mode);
-            updateThemeButtons(mode);
-        }
-
-        function updateThemeButtons(mode) {
-            ['light', 'dark', 'system'].forEach(m => {
-                const btn = document.getElementById(`btn-theme-${m}`);
-                if(btn) btn.className = "flex-1 p-2 rounded text-xs font-bold border theme-border transition theme-text-sub hover:bg-white/5"; 
-            });
-            const active = document.getElementById(`btn-theme-${mode}`);
-            if(active) active.className = "flex-1 p-2 rounded text-xs font-bold border theme-border transition theme-selected shadow-lg";
-        }
-
-        // --- CONTRAST LOGIC ---
         function toggleContrast() {
-            document.body.classList.toggle('high-contrast');
-            safeSetStorage('h_contrast', document.body.classList.contains('high-contrast'));
-            updateContrastToggle();
-            const mode = safeGetStorage('h_theme_mode') || 'system';
-            updateThemeButtons(mode);
+            const isContrast = document.body.classList.toggle('high-contrast');
+            safeSetStorage('h_contrast', isContrast); // Persist across pages
+            updateToggles();
         }
 
-        function updateContrastToggle() {
+        function updateToggles() {
+            const isLight = document.body.classList.contains('light-mode');
             const isContrast = document.body.classList.contains('high-contrast');
-            const btn = document.getElementById('btn-contrast').firstElementChild;
-            btn.style.transform = isContrast ? 'translateX(24px)' : 'translateX(0)';
+
+            // Light Switch Visuals
+            const lightBtn = document.getElementById('btn-light').firstElementChild;
+            lightBtn.style.transform = isLight ? 'translateX(24px)' : 'translateX(0)';
+            document.getElementById('btn-light').style.backgroundColor = isLight ? '#22c55e' : '#4b5563';
+
+            // Contrast Switch Visuals
+            const contrastBtn = document.getElementById('btn-contrast').firstElementChild;
+            contrastBtn.style.transform = isContrast ? 'translateX(24px)' : 'translateX(0)';
             document.getElementById('btn-contrast').style.backgroundColor = isContrast ? '#2563eb' : '#4b5563';
         }
 
@@ -258,6 +210,7 @@
             document.getElementById('modal-help').classList.remove('hidden');
         }
 
+        // Run immediately on page load to prevent flash
         initTheme();
     </script>
 </body>
