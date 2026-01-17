@@ -127,26 +127,29 @@
     </div>
 
     <script>
-        // --- SAFE STORAGE ---
-        const memStorage = {};
+        // --- SAFE STORAGE (Cookie Fallback) ---
+        // This ensures settings persist between pages even if localStorage is blocked
         function safeSetStorage(key, val) {
             try {
                 if(typeof localStorage !== 'undefined' && localStorage) {
                     localStorage.setItem(key, val);
                 } else { throw new Error("Blocked"); }
-            } catch(e) { memStorage[key] = val; }
+            } catch(e) {
+                document.cookie = `${key}=${val}; path=/; max-age=31536000`; // 1 year
+            }
         }
         function safeGetStorage(key) {
             try {
                 if(typeof localStorage !== 'undefined' && localStorage) {
                     return localStorage.getItem(key);
                 } else { throw new Error("Blocked"); }
-            } catch(e) { return memStorage[key] || null; }
+            } catch(e) {
+                const match = document.cookie.match(new RegExp('(^| )' + key + '=([^;]+)'));
+                return match ? match[2] : null;
+            }
         }
 
         // --- SHARED THEME LOGIC ---
-        // This function runs on load. It checks 'h_theme_mode' (light/dark) 
-        // and 'h_contrast' (true/false) which are shared across all pages.
         function initTheme() {
             try {
                 const mode = safeGetStorage('h_theme_mode') || 'dark'; // Default to Dark
@@ -162,7 +165,7 @@
                 // Apply High Contrast if saved
                 if(isContrast) document.body.classList.add('high-contrast');
                 
-                updateToggles(); // Update visual switch positions
+                updateToggles();
             } catch(e) { console.log("Theme init error"); }
         }
 
