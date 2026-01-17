@@ -114,12 +114,12 @@
         <p class="text-sm theme-text-sub uppercase tracking-[0.4em] mb-12 font-bold">Online Arcade</p>
 
         <div class="space-y-6">
-            <a href="https://arcady-hangman-pro.vercel.app/" class="neutral-in-hc block w-full p-6 rounded-xl theme-panel border-2 border-red-500 hover:bg-red-900/10 transition group shadow-xl text-red-500">
+            <a id="link-pro" href="https://arcady-hangman-pro.vercel.app/" class="neutral-in-hc block w-full p-6 rounded-xl theme-panel border-2 border-red-500 hover:bg-red-900/10 transition group shadow-xl text-red-500">
                 <div class="text-4xl font-black mb-1">PRO</div>
                 <div class="text-[10px] theme-text-sub uppercase tracking-widest font-bold">Face the Hangman</div>
             </a>
 
-            <a href="https://arcady-hangman-pvp.vercel.app/" class="neutral-in-hc block w-full p-6 rounded-xl theme-panel border-2 border-blue-500 hover:bg-blue-900/10 transition group shadow-xl text-blue-500">
+            <a id="link-pvp" href="https://arcady-hangman-pvp.vercel.app/" class="neutral-in-hc block w-full p-6 rounded-xl theme-panel border-2 border-blue-500 hover:bg-blue-900/10 transition group shadow-xl text-blue-500">
                 <div class="text-4xl font-black mb-1">PVP</div>
                 <div class="text-[10px] theme-text-sub uppercase tracking-widest font-bold">Play with Friends</div>
             </a>
@@ -127,59 +127,79 @@
     </div>
 
     <script>
-        // --- SAFE STORAGE (Cookie Fallback) ---
-        // This ensures settings persist between pages even if localStorage is blocked
+        // --- SAFE STORAGE ---
+        const memStorage = {};
         function safeSetStorage(key, val) {
             try {
                 if(typeof localStorage !== 'undefined' && localStorage) {
                     localStorage.setItem(key, val);
                 } else { throw new Error("Blocked"); }
-            } catch(e) {
-                document.cookie = `${key}=${val}; path=/; max-age=31536000`; // 1 year
-            }
+            } catch(e) { memStorage[key] = val; }
         }
         function safeGetStorage(key) {
             try {
                 if(typeof localStorage !== 'undefined' && localStorage) {
                     return localStorage.getItem(key);
                 } else { throw new Error("Blocked"); }
-            } catch(e) {
-                const match = document.cookie.match(new RegExp('(^| )' + key + '=([^;]+)'));
-                return match ? match[2] : null;
-            }
+            } catch(e) { return memStorage[key] || null; }
         }
 
-        // --- SHARED THEME LOGIC ---
+        // --- SHARED THEME LOGIC (WITH CROSS-PAGE SYNC) ---
         function initTheme() {
             try {
-                const mode = safeGetStorage('h_theme_mode') || 'dark'; // Default to Dark
-                const isContrast = safeGetStorage('h_contrast') === 'true';
-                
-                // Apply Light Mode if saved
-                if (mode === 'light') {
-                    document.body.classList.add('light-mode');
-                } else {
-                    document.body.classList.remove('light-mode');
-                }
+                // 1. Check URL Params (Incoming Sync)
+                const params = new URLSearchParams(window.location.search);
+                let mode = safeGetStorage('h_theme_mode') || 'dark';
+                let isContrast = safeGetStorage('h_contrast') === 'true';
 
-                // Apply High Contrast if saved
-                if(isContrast) document.body.classList.add('high-contrast');
+                if (params.has('theme')) {
+                    mode = params.get('theme');
+                    safeSetStorage('h_theme_mode', mode);
+                }
+                if (params.has('contrast')) {
+                    isContrast = params.get('contrast') === 'true';
+                    safeSetStorage('h_contrast', isContrast);
+                }
                 
-                updateToggles();
+                // 2. Apply Settings
+                applySettings(mode, isContrast);
+                
             } catch(e) { console.log("Theme init error"); }
+        }
+
+        function applySettings(mode, isContrast) {
+            // Apply Light/Dark
+            if (mode === 'light') {
+                document.body.classList.add('light-mode');
+            } else {
+                document.body.classList.remove('light-mode');
+            }
+
+            // Apply Contrast
+            if (isContrast) {
+                document.body.classList.add('high-contrast');
+            } else {
+                document.body.classList.remove('high-contrast');
+            }
+
+            // Update Visuals & Links
+            updateToggles();
+            updateOutgoingLinks();
         }
 
         function toggleLightMode() {
             const isLight = document.body.classList.toggle('light-mode');
             const newMode = isLight ? 'light' : 'dark';
-            safeSetStorage('h_theme_mode', newMode); // Persist across pages
+            safeSetStorage('h_theme_mode', newMode);
             updateToggles();
+            updateOutgoingLinks();
         }
 
         function toggleContrast() {
             const isContrast = document.body.classList.toggle('high-contrast');
-            safeSetStorage('h_contrast', isContrast); // Persist across pages
+            safeSetStorage('h_contrast', isContrast);
             updateToggles();
+            updateOutgoingLinks();
         }
 
         function updateToggles() {
@@ -195,6 +215,20 @@
             const contrastBtn = document.getElementById('btn-contrast').firstElementChild;
             contrastBtn.style.transform = isContrast ? 'translateX(24px)' : 'translateX(0)';
             document.getElementById('btn-contrast').style.backgroundColor = isContrast ? '#2563eb' : '#4b5563';
+        }
+
+        // --- CROSS-DOMAIN SYNC ---
+        // This updates the actual hrefs of the buttons so they carry the settings
+        function updateOutgoingLinks() {
+            const mode = document.body.classList.contains('light-mode') ? 'light' : 'dark';
+            const contrast = document.body.classList.contains('high-contrast');
+            const query = `?theme=${mode}&contrast=${contrast}`;
+
+            const proLink = document.getElementById('link-pro');
+            if(proLink) proLink.href = "https://arcady-hangman-pro.vercel.app/" + query;
+
+            const pvpLink = document.getElementById('link-pvp');
+            if(pvpLink) pvpLink.href = "https://arcady-hangman-pvp.vercel.app/" + query;
         }
 
         function toggleMenu() {
@@ -213,7 +247,7 @@
             document.getElementById('modal-help').classList.remove('hidden');
         }
 
-        // Run immediately on page load to prevent flash
+        // Run immediately on page load
         initTheme();
     </script>
 </body>
