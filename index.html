@@ -3,51 +3,182 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Hangman</title>
+    <title>Hangman: Arcade</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
+        /* --- THEME ENGINE --- */
+        :root {
+            --bg-primary: #111827; /* Gray 900 */
+            --bg-secondary: #1f2937; /* Gray 800 */
+            --text-primary: #ffffff;
+            --text-secondary: #9ca3af; /* Gray 400 */
+            --accent-success: #22c55e; /* Green 500 */
+            --accent-fail: #ef4444; /* Red 500 */
+            --border-color: #374151; /* Gray 700 */
+        }
+
+        /* Light Mode */
+        body.light-mode {
+            --bg-primary: #f3f4f6; /* Gray 100 */
+            --bg-secondary: #ffffff;
+            --text-primary: #111827; /* Gray 900 */
+            --text-secondary: #4b5563; /* Gray 600 */
+            --accent-success: #16a34a; /* Green 600 */
+            --accent-fail: #dc2626; /* Red 600 */
+            --border-color: #d1d5db; /* Gray 300 */
+        }
+
+        /* High Contrast (Blue/Orange) */
+        body.high-contrast {
+            --accent-success: #2563eb !important; /* Blue 600 */
+            --accent-fail: #ea580c !important; /* Orange 600 */
+            font-weight: 700;
+        }
+
+        /* Utilities */
+        .theme-bg { background-color: var(--bg-primary); }
+        .theme-panel { background-color: var(--bg-secondary); }
+        .theme-text { color: var(--text-primary); }
+        .theme-text-sub { color: var(--text-secondary); }
+        .theme-success { color: var(--accent-success); }
+        .theme-fail { color: var(--accent-fail); }
+        .theme-border { border-color: var(--border-color); }
+        
+        .theme-btn-success { background-color: var(--accent-success); color: white; }
+        .theme-btn-fail { background-color: var(--accent-fail); color: white; }
+
+        /* Neutralize colors in High Contrast */
+        body.high-contrast .neutral-in-hc {
+            color: var(--text-primary) !important;
+            border-color: var(--border-color) !important;
+        }
+
+        .hidden { display: none !important; }
         .btn-press:active { transform: scale(0.95); }
-        /* Updated Pro Mode glow to Red */
-        .hover-glow:hover { box-shadow: 0 0 20px rgba(220, 38, 38, 0.4); }
-        .hover-glow-blue:hover { box-shadow: 0 0 20px rgba(37, 99, 235, 0.3); }
+        
+        #settings-menu { transition: transform 0.3s ease-in-out; }
+        .menu-open { transform: translateX(0) !important; }
+        .menu-closed { transform: translateX(100%); }
     </style>
 </head>
-<body class="bg-gray-900 text-white font-sans min-h-screen flex flex-col items-center justify-center p-6">
+<body class="theme-bg theme-text font-sans min-h-screen flex flex-col items-center justify-center transition-colors duration-300">
 
-    <div class="text-center mb-16">
-        <h1 class="text-7xl md:text-9xl font-black text-green-500 tracking-tighter italic mb-4">
-            HANGMAN
-        </h1>
-        <p class="text-gray-500 uppercase tracking-[0.4em] text-xs font-bold">Online Arcade</p>
+    <div class="absolute top-4 right-4 z-50">
+        <button onclick="toggleMenu()" class="p-2 rounded theme-panel theme-border border shadow-lg text-2xl">☰</button>
     </div>
 
-    <div class="w-full max-w-lg space-y-6">
-        
-        <a href="https://arcady-hangman-pro.vercel.app" 
-           class="btn-press hover-glow block bg-gray-800 border-2 border-red-600 p-8 rounded-2xl transition group">
-            <div class="flex flex-col items-center text-center">
-                <span class="text-red-500 font-black text-2xl uppercase tracking-tighter mb-1 group-hover:scale-105 transition-transform">
-                    Pro Mode
-                </span>
-                <span class="text-gray-400 font-bold text-sm uppercase tracking-widest">
-                    Face the Hangman
-                </span>
+    <div id="settings-menu" class="fixed inset-0 z-40 bg-black/50 backdrop-blur-sm flex justify-end menu-closed">
+        <div class="theme-panel w-80 h-full p-6 shadow-2xl border-l theme-border flex flex-col">
+            <div class="flex justify-between items-center mb-8">
+                <h2 class="text-xl font-bold uppercase tracking-widest theme-text">Settings</h2>
+                <button onclick="toggleMenu()" class="text-2xl theme-text">✕</button>
             </div>
-        </a>
 
-        <a href="https://arcady-hangman-pvp.vercel.app" 
-           class="btn-press hover-glow-blue block bg-gray-800 border-2 border-blue-600 p-8 rounded-2xl transition group">
-            <div class="flex flex-col items-center text-center">
-                <span class="text-blue-500 font-black text-2xl uppercase tracking-tighter mb-1 group-hover:scale-105 transition-transform">
-                    PvP Mode
-                </span>
-                <span class="text-gray-400 font-bold text-sm uppercase tracking-widest">
-                    Play With Friends
-                </span>
+            <div class="space-y-6 flex-1">
+                <div class="flex justify-between items-center">
+                    <span class="font-bold theme-text-sub">Light Mode</span>
+                    <button onclick="toggleTheme('light')" id="btn-light" class="w-12 h-6 rounded-full bg-gray-600 relative transition"><div class="w-4 h-4 bg-white rounded-full absolute top-1 left-1 transition-all"></div></button>
+                </div>
+                <div class="flex justify-between items-center">
+                    <span class="font-bold theme-text-sub">High Contrast</span>
+                    <span class="text-[9px] theme-text-sub uppercase">(Colorblind)</span>
+                    <button onclick="toggleTheme('contrast')" id="btn-contrast" class="w-12 h-6 rounded-full bg-gray-600 relative transition"><div class="w-4 h-4 bg-white rounded-full absolute top-1 left-1 transition-all"></div></button>
+                </div>
+                <hr class="theme-border opacity-50">
+                <button onclick="showHelp()" class="w-full p-3 rounded theme-border border font-bold theme-text uppercase tracking-widest hover:opacity-70">How to Play</button>
             </div>
-        </a>
-
+            
+            <div class="text-center mt-8">
+                <p class="text-[10px] theme-text-sub uppercase tracking-[0.3em]">Version 2.5</p>
+            </div>
+        </div>
     </div>
 
+    <div id="modal-help" class="hidden fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur p-4">
+        <div class="theme-panel p-8 rounded-2xl max-w-md w-full border theme-border shadow-2xl relative">
+            <button onclick="document.getElementById('modal-help').classList.add('hidden')" class="absolute top-4 right-4 text-2xl theme-text opacity-50 hover:opacity-100">✕</button>
+            <h2 class="text-2xl font-bold mb-4 theme-success uppercase italic">Welcome to Hangman</h2>
+            <div class="space-y-4 theme-text-sub text-sm leading-relaxed">
+                <p>This is the ultimate word-guessing arcade.</p>
+                <ul class="list-disc pl-5 space-y-2">
+                    <li><strong class="theme-text">Pro Mode (Solo):</strong> Challenge our massive database of films, books, and art. You have limited lives to guess the title.</li>
+                    <li><strong class="theme-text">PvP Mode (Multiplayer):</strong> Create a room and challenge friends. One player sets a word, and everyone else races to guess it.</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+
+    <div class="w-full max-w-md p-6 text-center">
+        <h1 class="text-6xl font-black mb-2 theme-success tracking-tighter italic uppercase drop-shadow-lg transition-colors">Hangman</h1>
+        <p class="text-sm theme-text-sub uppercase tracking-[0.4em] mb-12 font-bold">The Arcade Edition</p>
+
+        <div class="space-y-4">
+            <a href="pro/index.html" class="block w-full p-6 rounded-xl theme-panel border-2 theme-border hover:border-green-500 transition group shadow-xl">
+                <div class="text-2xl font-bold theme-text group-hover:text-green-500 transition mb-1">SINGLE PLAYER</div>
+                <div class="text-[10px] theme-text-sub uppercase tracking-widest">Pro Mode • Offline Database</div>
+            </a>
+
+            <a href="pvp/index.html" class="block w-full p-6 rounded-xl theme-panel border-2 theme-border hover:border-blue-500 transition group shadow-xl">
+                <div class="text-2xl font-bold theme-text group-hover:text-blue-500 transition mb-1">MULTIPLAYER</div>
+                <div class="text-[10px] theme-text-sub uppercase tracking-widest">PvP • Real-time • Setter vs Guesser</div>
+            </a>
+        </div>
+    </div>
+
+    <script>
+        function initTheme() {
+            const isLight = localStorage.getItem('h_theme') === 'light';
+            const isContrast = localStorage.getItem('h_contrast') === 'true';
+            
+            if(isLight) document.body.classList.add('light-mode');
+            if(isContrast) document.body.classList.add('high-contrast');
+            
+            updateToggles();
+        }
+
+        function toggleTheme(type) {
+            if(type === 'light') {
+                document.body.classList.toggle('light-mode');
+                localStorage.setItem('h_theme', document.body.classList.contains('light-mode') ? 'light' : 'dark');
+            } else {
+                document.body.classList.toggle('high-contrast');
+                localStorage.setItem('h_contrast', document.body.classList.contains('high-contrast'));
+            }
+            updateToggles();
+        }
+
+        function updateToggles() {
+            const isLight = document.body.classList.contains('light-mode');
+            const isContrast = document.body.classList.contains('high-contrast');
+            
+            const lightBtn = document.getElementById('btn-light').firstElementChild;
+            const contrastBtn = document.getElementById('btn-contrast').firstElementChild;
+            
+            // Standard Colors for Toggles (Green for Light, Blue for Contrast)
+            lightBtn.style.transform = isLight ? 'translateX(24px)' : 'translateX(0)';
+            document.getElementById('btn-light').style.backgroundColor = isLight ? '#22c55e' : '#4b5563';
+            
+            contrastBtn.style.transform = isContrast ? 'translateX(24px)' : 'translateX(0)';
+            document.getElementById('btn-contrast').style.backgroundColor = isContrast ? '#2563eb' : '#4b5563';
+        }
+
+        function toggleMenu() {
+            const menu = document.getElementById('settings-menu');
+            if(menu.classList.contains('menu-closed')) {
+                menu.classList.remove('menu-closed');
+                menu.classList.add('menu-open');
+            } else {
+                menu.classList.remove('menu-open');
+                menu.classList.add('menu-closed');
+            }
+        }
+
+        function showHelp() {
+            toggleMenu();
+            document.getElementById('modal-help').classList.remove('hidden');
+        }
+
+        initTheme();
+    </script>
 </body>
 </html>
