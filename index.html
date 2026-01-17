@@ -35,6 +35,14 @@
             background-color: var(--bg-primary) !important;
         }
 
+        /* Dynamic Selected State */
+        .theme-selected {
+            border-width: 2px;
+            border-color: var(--accent-success) !important;
+            color: var(--accent-success) !important;
+            background-color: rgba(128, 128, 128, 0.1) !important;
+        }
+
         .theme-bg { background-color: var(--bg-primary); }
         .theme-panel { background-color: var(--bg-secondary); }
         .theme-text { color: var(--text-primary); }
@@ -43,6 +51,9 @@
         .theme-fail { color: var(--accent-fail); }
         .theme-border { border-color: var(--border-color); }
         
+        .theme-btn-success { background-color: var(--accent-success); color: white; }
+        .theme-btn-fail { background-color: var(--accent-fail); color: white; }
+
         .hidden { display: none !important; }
         .btn-press:active { transform: scale(0.95); }
         .disabled-toggle { opacity: 0.5; pointer-events: none; }
@@ -174,10 +185,10 @@
         function updateThemeButtons(mode) {
             ['light', 'dark', 'system'].forEach(m => {
                 const btn = document.getElementById(`btn-theme-${m}`);
-                btn.className = "flex-1 p-2 rounded text-xs font-bold border theme-border transition theme-text-sub hover:bg-white/5"; 
+                if(btn) btn.className = "flex-1 p-2 rounded text-xs font-bold border theme-border transition theme-text-sub hover:bg-white/5"; 
             });
             const active = document.getElementById(`btn-theme-${mode}`);
-            active.className = "flex-1 p-2 rounded text-xs font-bold border theme-border transition theme-btn-success shadow-lg text-white";
+            if(active) active.className = "flex-1 p-2 rounded text-xs font-bold border theme-border transition theme-btn-success shadow-lg text-white";
         }
 
         window.matchMedia('(prefers-color-scheme: light)').addEventListener('change', e => {
@@ -191,6 +202,9 @@
             document.body.classList.toggle('high-contrast');
             safeSetStorage('h_contrast', document.body.classList.contains('high-contrast'));
             updateContrastToggle();
+            // Re-apply button colors if contrast changed
+            const mode = safeGetStorage('h_theme_mode') || 'system';
+            updateThemeButtons(mode);
         }
 
         function updateContrastToggle() {
