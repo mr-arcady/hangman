@@ -8,40 +8,33 @@
     <style>
         /* --- THEME ENGINE --- */
         :root {
-            --bg-primary: #111827; /* Gray 900 */
-            --bg-secondary: #1f2937; /* Gray 800 */
-            --text-primary: #ffffff;
-            --text-secondary: #9ca3af; /* Gray 400 */
-            --accent-success: #22c55e; /* Green 500 */
-            --accent-fail: #ef4444; /* Red 500 */
-            --border-color: #374151; /* Gray 700 */
+            --bg-primary: #111827; --bg-secondary: #1f2937;
+            --text-primary: #ffffff; --text-secondary: #9ca3af;
+            --accent-success: #22c55e; --accent-fail: #ef4444;
+            --border-color: #374151;
         }
-
-        /* Light Mode */
         body.light-mode {
-            --bg-primary: #f3f4f6; /* Gray 100 */
-            --bg-secondary: #ffffff;
-            --text-primary: #111827; /* Gray 900 */
-            --text-secondary: #4b5563; /* Gray 600 */
-            --accent-success: #16a34a; /* Green 600 */
-            --accent-fail: #dc2626; /* Red 600 */
-            --border-color: #d1d5db; /* Gray 300 */
+            --bg-primary: #f3f4f6; --bg-secondary: #ffffff;
+            --text-primary: #111827; --text-secondary: #4b5563;
+            --accent-success: #16a34a; --accent-fail: #dc2626;
+            --border-color: #d1d5db;
         }
-
-        /* High Contrast (Blue/Orange) */
         body.high-contrast {
-            --accent-success: #2563eb !important; /* Blue 600 */
-            --accent-fail: #ea580c !important; /* Orange 600 */
+            --accent-success: #2563eb !important; /* Blue */
+            --accent-fail: #ea580c !important; /* Orange */
             font-weight: 700;
         }
-
-        /* Neutralize colors in High Contrast */
+        
+        /* Neutralize colored buttons in Accessibility Mode */
         body.high-contrast .neutral-in-hc {
-            color: var(--text-primary) !important;
             border-color: var(--border-color) !important;
+            color: var(--text-primary) !important;
+            background-color: var(--bg-secondary) !important;
+        }
+        body.high-contrast .neutral-in-hc:hover {
+            background-color: var(--bg-primary) !important;
         }
 
-        /* Utilities */
         .theme-bg { background-color: var(--bg-primary); }
         .theme-panel { background-color: var(--bg-secondary); }
         .theme-text { color: var(--text-primary); }
@@ -50,11 +43,9 @@
         .theme-fail { color: var(--accent-fail); }
         .theme-border { border-color: var(--border-color); }
         
-        .theme-btn-success { background-color: var(--accent-success); color: white; }
-        .theme-btn-fail { background-color: var(--accent-fail); color: white; }
-
         .hidden { display: none !important; }
         .btn-press:active { transform: scale(0.95); }
+        .disabled-toggle { opacity: 0.5; pointer-events: none; }
         
         #settings-menu { transition: transform 0.3s ease-in-out; }
         .menu-open { transform: translateX(0) !important; }
@@ -73,9 +64,12 @@
                 <h2 class="text-xl font-bold uppercase tracking-widest theme-text">Settings</h2>
                 <button onclick="toggleMenu()" class="text-2xl theme-text">✕</button>
             </div>
-
             <div class="space-y-6 flex-1">
                 <div class="flex justify-between items-center">
+                    <span class="font-bold theme-text-sub">Match System</span>
+                    <button onclick="toggleTheme('system')" id="btn-system" class="w-12 h-6 rounded-full bg-gray-600 relative transition"><div class="w-4 h-4 bg-white rounded-full absolute top-1 left-1 transition-all"></div></button>
+                </div>
+                <div class="flex justify-between items-center" id="row-light">
                     <span class="font-bold theme-text-sub">Light Mode</span>
                     <button onclick="toggleTheme('light')" id="btn-light" class="w-12 h-6 rounded-full bg-gray-600 relative transition"><div class="w-4 h-4 bg-white rounded-full absolute top-1 left-1 transition-all"></div></button>
                 </div>
@@ -86,7 +80,6 @@
                 <hr class="theme-border opacity-50">
                 <button onclick="showHelp()" class="w-full p-3 rounded theme-border border font-bold theme-text uppercase tracking-widest hover:opacity-70">How to Play</button>
             </div>
-            
         </div>
     </div>
 
@@ -97,8 +90,8 @@
             <div class="space-y-4 theme-text-sub text-sm leading-relaxed">
                 <p>This is the ultimate word-guessing arcade.</p>
                 <ul class="list-disc pl-5 space-y-2">
-                    <li><strong class="theme-text">Pro Mode (Solo):</strong> Challenge our massive database of films, books, and art. You have limited lives to guess the title.</li>
-                    <li><strong class="theme-text">PvP Mode (Multiplayer):</strong> Create a room and challenge friends. One player sets a word, and everyone else races to guess it.</li>
+                    <li><strong class="theme-text">Pro Mode (Solo):</strong> Challenge our massive database of films, books, and art.</li>
+                    <li><strong class="theme-text">PvP Mode (Multiplayer):</strong> Create a room and challenge friends. One player sets a word, others guess.</li>
                 </ul>
             </div>
         </div>
@@ -123,36 +116,67 @@
 
     <script>
         function initTheme() {
-            const isLight = localStorage.getItem('h_theme') === 'light';
+            const useSystem = localStorage.getItem('h_system') === 'true';
             const isContrast = localStorage.getItem('h_contrast') === 'true';
             
-            if(isLight) document.body.classList.add('light-mode');
+            if (useSystem) {
+                const systemLight = window.matchMedia('(prefers-color-scheme: light)').matches;
+                if (systemLight) document.body.classList.add('light-mode');
+                else document.body.classList.remove('light-mode');
+            } else {
+                const isLight = localStorage.getItem('h_theme') === 'light';
+                if (isLight) document.body.classList.add('light-mode');
+                else document.body.classList.remove('light-mode');
+            }
+
             if(isContrast) document.body.classList.add('high-contrast');
-            
             updateToggles();
         }
 
+        window.matchMedia('(prefers-color-scheme: light)').addEventListener('change', e => {
+            if (localStorage.getItem('h_system') === 'true') {
+                if (e.matches) document.body.classList.add('light-mode');
+                else document.body.classList.remove('light-mode');
+                updateToggles();
+            }
+        });
+
         function toggleTheme(type) {
-            if(type === 'light') {
+            if (type === 'system') {
+                const current = localStorage.getItem('h_system') === 'true';
+                localStorage.setItem('h_system', !current);
+                initTheme();
+            } else if (type === 'light') {
+                if (localStorage.getItem('h_system') === 'true') return;
                 document.body.classList.toggle('light-mode');
                 localStorage.setItem('h_theme', document.body.classList.contains('light-mode') ? 'light' : 'dark');
+                updateToggles();
             } else {
                 document.body.classList.toggle('high-contrast');
                 localStorage.setItem('h_contrast', document.body.classList.contains('high-contrast'));
+                updateToggles();
             }
-            updateToggles();
         }
 
         function updateToggles() {
             const isLight = document.body.classList.contains('light-mode');
             const isContrast = document.body.classList.contains('high-contrast');
+            const useSystem = localStorage.getItem('h_system') === 'true';
             
             const lightBtn = document.getElementById('btn-light').firstElementChild;
             const contrastBtn = document.getElementById('btn-contrast').firstElementChild;
+            const systemBtn = document.getElementById('btn-system').firstElementChild;
             
             lightBtn.style.transform = isLight ? 'translateX(24px)' : 'translateX(0)';
             document.getElementById('btn-light').style.backgroundColor = isLight ? '#22c55e' : '#4b5563';
             
+            const lightRow = document.getElementById('btn-light');
+            if (useSystem) lightRow.classList.add('disabled-toggle', 'opacity-50', 'cursor-not-allowed');
+            else lightRow.classList.remove('disabled-toggle', 'opacity-50', 'cursor-not-allowed');
+
+            systemBtn.style.transform = useSystem ? 'translateX(24px)' : 'translateX(0)';
+            document.getElementById('btn-system').style.backgroundColor = useSystem ? '#22c55e' : '#4b5563';
+
             contrastBtn.style.transform = isContrast ? 'translateX(24px)' : 'translateX(0)';
             document.getElementById('btn-contrast').style.backgroundColor = isContrast ? '#2563eb' : '#4b5563';
         }
