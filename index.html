@@ -35,6 +35,12 @@
             font-weight: 700;
         }
 
+        /* Neutralize colors in High Contrast */
+        body.high-contrast .neutral-in-hc {
+            color: var(--text-primary) !important;
+            border-color: var(--border-color) !important;
+        }
+
         /* Utilities */
         .theme-bg { background-color: var(--bg-primary); }
         .theme-panel { background-color: var(--bg-secondary); }
@@ -74,7 +80,7 @@
                     <button onclick="toggleTheme('light')" id="btn-light" class="w-12 h-6 rounded-full bg-gray-600 relative transition"><div class="w-4 h-4 bg-white rounded-full absolute top-1 left-1 transition-all"></div></button>
                 </div>
                 <div class="flex justify-between items-center">
-                    <span class="font-bold theme-text-sub">High Contrast</span>
+                    <span class="font-bold theme-text-sub">Accessibility</span>
                     <span class="text-[9px] theme-text-sub uppercase">(Colorblind)</span>
                     <button onclick="toggleTheme('contrast')" id="btn-contrast" class="w-12 h-6 rounded-full bg-gray-600 relative transition"><div class="w-4 h-4 bg-white rounded-full absolute top-1 left-1 transition-all"></div></button>
                 </div>
@@ -82,9 +88,6 @@
                 <button onclick="showHelp()" class="w-full p-3 rounded theme-border border font-bold theme-text uppercase tracking-widest hover:opacity-70">How to Play</button>
             </div>
             
-            <div class="text-center mt-8">
-                <p class="text-[10px] theme-text-sub uppercase tracking-[0.3em]">Version 2.5</p>
-            </div>
         </div>
     </div>
 
@@ -104,17 +107,17 @@
 
     <div class="w-full max-w-md p-6 text-center">
         <h1 class="text-6xl font-black mb-2 theme-success tracking-tighter italic uppercase drop-shadow-lg transition-colors">Hangman</h1>
-        <p class="text-sm theme-text-sub uppercase tracking-[0.4em] mb-12 font-bold">The Arcade Edition</p>
+        <p class="text-sm theme-text-sub uppercase tracking-[0.4em] mb-12 font-bold">Online Arcade</p>
 
-        <div class="space-y-4">
-            <a href="https://arcady-hangman-pro.vercel.app/" class="block w-full p-6 rounded-xl theme-panel border-2 theme-border hover:border-green-500 transition group shadow-xl">
-                <div class="text-2xl font-bold theme-text group-hover:text-green-500 transition mb-1">SINGLE PLAYER</div>
-                <div class="text-[10px] theme-text-sub uppercase tracking-widest">Pro Mode • Offline Database</div>
+        <div class="space-y-6">
+            <a href="pro.html" class="neutral-in-hc block w-full p-6 rounded-xl theme-panel border-2 border-red-500 hover:bg-red-900/10 transition group shadow-xl text-red-500">
+                <div class="text-4xl font-black mb-1">PRO</div>
+                <div class="text-[10px] theme-text-sub uppercase tracking-widest font-bold">Face the Hangman</div>
             </a>
 
-            <a href="https://arcady-hangman-pvp.vercel.app/" class="block w-full p-6 rounded-xl theme-panel border-2 theme-border hover:border-blue-500 transition group shadow-xl">
-                <div class="text-2xl font-bold theme-text group-hover:text-blue-500 transition mb-1">MULTIPLAYER</div>
-                <div class="text-[10px] theme-text-sub uppercase tracking-widest">PvP • Real-time • Setter vs Guesser</div>
+            <a href="pvp.html" class="neutral-in-hc block w-full p-6 rounded-xl theme-panel border-2 border-blue-500 hover:bg-blue-900/10 transition group shadow-xl text-blue-500">
+                <div class="text-4xl font-black mb-1">PVP</div>
+                <div class="text-[10px] theme-text-sub uppercase tracking-widest font-bold">Play with Friends</div>
             </a>
         </div>
     </div>
