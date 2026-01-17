@@ -127,31 +127,37 @@
     </div>
 
     <script>
-        // --- SAFE STORAGE ---
+        // --- SAFE STORAGE (Cookie Fallback) ---
         const memStorage = {};
         function safeSetStorage(key, val) {
             try {
                 if(typeof localStorage !== 'undefined' && localStorage) {
                     localStorage.setItem(key, val);
                 } else { throw new Error("Blocked"); }
-            } catch(e) { memStorage[key] = val; }
+            } catch(e) {
+                document.cookie = `${key}=${val}; path=/; max-age=31536000`; // Cookie fallback
+            }
         }
         function safeGetStorage(key) {
             try {
                 if(typeof localStorage !== 'undefined' && localStorage) {
                     return localStorage.getItem(key);
                 } else { throw new Error("Blocked"); }
-            } catch(e) { return memStorage[key] || null; }
+            } catch(e) {
+                const match = document.cookie.match(new RegExp('(^| )' + key + '=([^;]+)'));
+                return match ? match[2] : null;
+            }
         }
 
         // --- SHARED THEME LOGIC (WITH CROSS-PAGE SYNC) ---
         function initTheme() {
             try {
-                // 1. Check URL Params (Incoming Sync)
+                // 1. Check URL Params (Priority)
                 const params = new URLSearchParams(window.location.search);
                 let mode = safeGetStorage('h_theme_mode') || 'dark';
                 let isContrast = safeGetStorage('h_contrast') === 'true';
 
+                // If URL has settings, override and save
                 if (params.has('theme')) {
                     mode = params.get('theme');
                     safeSetStorage('h_theme_mode', mode);
@@ -161,28 +167,25 @@
                     safeSetStorage('h_contrast', isContrast);
                 }
                 
-                // 2. Apply Settings
+                // 2. Apply
                 applySettings(mode, isContrast);
                 
             } catch(e) { console.log("Theme init error"); }
         }
 
         function applySettings(mode, isContrast) {
-            // Apply Light/Dark
             if (mode === 'light') {
                 document.body.classList.add('light-mode');
             } else {
                 document.body.classList.remove('light-mode');
             }
 
-            // Apply Contrast
             if (isContrast) {
                 document.body.classList.add('high-contrast');
             } else {
                 document.body.classList.remove('high-contrast');
             }
 
-            // Update Visuals & Links
             updateToggles();
             updateOutgoingLinks();
         }
@@ -206,19 +209,19 @@
             const isLight = document.body.classList.contains('light-mode');
             const isContrast = document.body.classList.contains('high-contrast');
 
-            // Light Switch Visuals
+            // Light Switch
             const lightBtn = document.getElementById('btn-light').firstElementChild;
             lightBtn.style.transform = isLight ? 'translateX(24px)' : 'translateX(0)';
             document.getElementById('btn-light').style.backgroundColor = isLight ? '#22c55e' : '#4b5563';
 
-            // Contrast Switch Visuals
+            // Contrast Switch
             const contrastBtn = document.getElementById('btn-contrast').firstElementChild;
             contrastBtn.style.transform = isContrast ? 'translateX(24px)' : 'translateX(0)';
             document.getElementById('btn-contrast').style.backgroundColor = isContrast ? '#2563eb' : '#4b5563';
         }
 
-        // --- CROSS-DOMAIN SYNC ---
-        // This updates the actual hrefs of the buttons so they carry the settings
+        // --- UPDATES OUTGOING LINKS ---
+        // This ensures that when you click Pro or PvP, the current theme travels with you
         function updateOutgoingLinks() {
             const mode = document.body.classList.contains('light-mode') ? 'light' : 'dark';
             const contrast = document.body.classList.contains('high-contrast');
