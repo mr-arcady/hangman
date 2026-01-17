@@ -3,38 +3,66 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="color-scheme" content="dark light">
     <title>Hangman: Arcade</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
-        /* --- THEME ENGINE (DEFAULT = DARK) --- */
+        /* --- THEME ENGINE --- */
+        
+        /* 1. Base Defaults (Dark Mode) - This is the fallback if system is Dark or Unknown */
         :root {
-            --bg-primary: #111827; /* Gray 900 */
-            --bg-secondary: #1f2937; /* Gray 800 */
-            --text-primary: #ffffff;
-            --text-secondary: #9ca3af; /* Gray 400 */
-            --accent-success: #22c55e; /* Green 500 */
-            --accent-fail: #ef4444; /* Red 500 */
-            --border-color: #374151; /* Gray 700 */
+            --bg-primary: #111827; 
+            --bg-secondary: #1f2937; 
+            --text-primary: #ffffff; 
+            --text-secondary: #9ca3af;
+            --accent-success: #22c55e; 
+            --accent-fail: #ef4444; 
+            --border-color: #374151;
         }
 
-        /* --- LIGHT MODE CLASS (Only active when JS adds .light-mode) --- */
-        body.light-mode {
+        /* 2. System Light Mode - Only activates if device explicitly says "I am Light" */
+        @media (prefers-color-scheme: light) {
+            :root {
+                --bg-primary: #f3f4f6; 
+                --bg-secondary: #ffffff;
+                --text-primary: #111827; 
+                --text-secondary: #4b5563;
+                --accent-success: #16a34a; 
+                --accent-fail: #dc2626; 
+                --border-color: #d1d5db;
+            }
+        }
+
+        /* 3. Manual Overrides (Applied via JS classes) */
+        
+        /* Force Light: Overrides everything */
+        body.force-light {
             --bg-primary: #f3f4f6; 
             --bg-secondary: #ffffff;
             --text-primary: #111827; 
             --text-secondary: #4b5563;
             --accent-success: #16a34a; 
             --accent-fail: #dc2626; 
-            --border-color: #d1d5db; 
+            --border-color: #d1d5db;
         }
 
-        /* --- ACCESSIBILITY OVERRIDES --- */
+        /* Force Dark: Overrides everything (even if system is light) */
+        body.force-dark {
+            --bg-primary: #111827; 
+            --bg-secondary: #1f2937; 
+            --text-primary: #ffffff; 
+            --text-secondary: #9ca3af;
+            --accent-success: #22c55e; 
+            --accent-fail: #ef4444; 
+            --border-color: #374151;
+        }
+
+        /* 4. Accessibility Overrides (High Contrast) */
         body.high-contrast {
-            --accent-success: #2563eb !important; /* Blue */
-            --accent-fail: #ea580c !important; /* Orange */
+            --accent-success: #2563eb !important; 
+            --accent-fail: #ea580c !important; 
             font-weight: 700;
         }
-        
         body.high-contrast .neutral-in-hc {
             border-color: var(--border-color) !important;
             color: var(--text-primary) !important;
@@ -52,7 +80,7 @@
             background-color: rgba(128, 128, 128, 0.1) !important;
         }
 
-        /* --- UTILITIES --- */
+        /* Utilities */
         .theme-bg { background-color: var(--bg-primary); }
         .theme-panel { background-color: var(--bg-secondary); }
         .theme-text { color: var(--text-primary); }
@@ -156,11 +184,7 @@
             } catch(e) { return memStorage[key] || null; }
         }
 
-        // --- HARD LOGIC THEME ENGINE ---
-        // We do NOT trust the CSS media query blindly. We use JS to force the class.
-        const systemDark = window.matchMedia('(prefers-color-scheme: dark)');
-        const systemLight = window.matchMedia('(prefers-color-scheme: light)');
-
+        // --- SIMPLIFIED THEME LOGIC ---
         function initTheme() {
             try {
                 const mode = safeGetStorage('h_theme_mode') || 'system';
@@ -175,34 +199,17 @@
         }
 
         function applyTheme(mode) {
-            // Reset to Default (Dark)
-            document.body.classList.remove('light-mode');
+            // Clean slate
+            document.body.classList.remove('force-light', 'force-dark');
 
             if (mode === 'light') {
-                // Manual Light
-                document.body.classList.add('light-mode');
+                document.body.classList.add('force-light');
             } else if (mode === 'dark') {
-                // Manual Dark (Default) - Do nothing
-            } else {
-                // System Mode
-                // Check if device explicitly says "I am Light"
-                if (systemLight.matches) {
-                    document.body.classList.add('light-mode');
-                }
-                // If it says Dark, or No Preference, we do nothing (stay Dark)
-            }
+                document.body.classList.add('force-dark');
+            } 
+            // If 'system', we add NO classes. 
+            // The CSS @media (prefers-color-scheme) handles it natively.
         }
-
-        // Live Listener
-        function onSystemChange() {
-            const currentMode = safeGetStorage('h_theme_mode') || 'system';
-            if (currentMode === 'system') {
-                applyTheme('system');
-            }
-        }
-        
-        if (systemLight.addEventListener) systemLight.addEventListener('change', onSystemChange);
-        if (systemDark.addEventListener) systemDark.addEventListener('change', onSystemChange);
 
         function setTheme(mode) {
             safeSetStorage('h_theme_mode', mode);
@@ -224,8 +231,6 @@
             document.body.classList.toggle('high-contrast');
             safeSetStorage('h_contrast', document.body.classList.contains('high-contrast'));
             updateContrastToggle();
-            
-            // Refresh button colors (Green/Blue)
             const mode = safeGetStorage('h_theme_mode') || 'system';
             updateThemeButtons(mode);
         }
