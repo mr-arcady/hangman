@@ -47,12 +47,6 @@
         .theme-btn-success { background-color: var(--accent-success); color: white; }
         .theme-btn-fail { background-color: var(--accent-fail); color: white; }
 
-        /* Neutralize colors in High Contrast */
-        body.high-contrast .neutral-in-hc {
-            color: var(--text-primary) !important;
-            border-color: var(--border-color) !important;
-        }
-
         .hidden { display: none !important; }
         .btn-press:active { transform: scale(0.95); }
         
@@ -113,12 +107,12 @@
         <p class="text-sm theme-text-sub uppercase tracking-[0.4em] mb-12 font-bold">The Arcade Edition</p>
 
         <div class="space-y-4">
-            <a href="pro/index.html" class="block w-full p-6 rounded-xl theme-panel border-2 theme-border hover:border-green-500 transition group shadow-xl">
+            <a href="https://arcady-hangman-pro.vercel.app/" class="block w-full p-6 rounded-xl theme-panel border-2 theme-border hover:border-green-500 transition group shadow-xl">
                 <div class="text-2xl font-bold theme-text group-hover:text-green-500 transition mb-1">SINGLE PLAYER</div>
                 <div class="text-[10px] theme-text-sub uppercase tracking-widest">Pro Mode • Offline Database</div>
             </a>
 
-            <a href="pvp/index.html" class="block w-full p-6 rounded-xl theme-panel border-2 theme-border hover:border-blue-500 transition group shadow-xl">
+            <a href="https://arcady-hangman-pvp.vercel.app/" class="block w-full p-6 rounded-xl theme-panel border-2 theme-border hover:border-blue-500 transition group shadow-xl">
                 <div class="text-2xl font-bold theme-text group-hover:text-blue-500 transition mb-1">MULTIPLAYER</div>
                 <div class="text-[10px] theme-text-sub uppercase tracking-widest">PvP • Real-time • Setter vs Guesser</div>
             </a>
@@ -154,7 +148,6 @@
             const lightBtn = document.getElementById('btn-light').firstElementChild;
             const contrastBtn = document.getElementById('btn-contrast').firstElementChild;
             
-            // Standard Colors for Toggles (Green for Light, Blue for Contrast)
             lightBtn.style.transform = isLight ? 'translateX(24px)' : 'translateX(0)';
             document.getElementById('btn-light').style.backgroundColor = isLight ? '#22c55e' : '#4b5563';
             
