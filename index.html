@@ -7,7 +7,7 @@
     <title>Hangman: Arcade</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
-        /* --- 1. BASE THEME (Default = Dark) --- */
+        /* --- THEME ENGINE (DEFAULT = DARK) --- */
         :root {
             --bg-primary: #111827; /* Gray 900 */
             --bg-secondary: #1f2937; /* Gray 800 */
@@ -18,39 +18,18 @@
             --border-color: #374151; /* Gray 700 */
         }
 
-        /* --- 2. SYSTEM LIGHT OVERRIDE --- */
-        /* If browser says "Light Mode" and we are NOT forcing Dark, use Light vars */
-        @media (prefers-color-scheme: light) {
-            :root {
-                --bg-primary: #f3f4f6; 
-                --bg-secondary: #ffffff;
-                --text-primary: #111827; 
-                --text-secondary: #4b5563;
-                --accent-success: #16a34a; 
-                --accent-fail: #dc2626; 
-                --border-color: #d1d5db; 
-            }
-            /* Exception: If user FORCED dark, revert variables back to dark inside this media query */
-            body.force-dark {
-                --bg-primary: #111827; --bg-secondary: #1f2937;
-                --text-primary: #ffffff; --text-secondary: #9ca3af;
-                --accent-success: #22c55e; --accent-fail: #ef4444;
-                --border-color: #374151;
-            }
+        /* --- LIGHT MODE OVERRIDE (Only active when .light-mode class is present) --- */
+        body.light-mode {
+            --bg-primary: #f3f4f6; 
+            --bg-secondary: #ffffff;
+            --text-primary: #111827; 
+            --text-secondary: #4b5563;
+            --accent-success: #16a34a; 
+            --accent-fail: #dc2626; 
+            --border-color: #d1d5db; 
         }
 
-        /* --- 3. MANUAL OVERRIDES --- */
-        /* Force Light (applies regardless of system) */
-        body.force-light {
-            --bg-primary: #f3f4f6; --bg-secondary: #ffffff;
-            --text-primary: #111827; --text-secondary: #4b5563;
-            --accent-success: #16a34a; --accent-fail: #dc2626;
-            --border-color: #d1d5db;
-        }
-
-        /* Force Dark is handled by the Base Theme, unless we are in System Light (handled above) */
-
-        /* --- 4. ACCESSIBILITY OVERRIDES --- */
+        /* --- ACCESSIBILITY OVERRIDES --- */
         body.high-contrast {
             --accent-success: #2563eb !important; /* Blue */
             --accent-fail: #ea580c !important; /* Orange */
@@ -160,24 +139,31 @@
     </div>
 
     <script>
-        // --- SAFE STORAGE ---
+        // --- SAFE STORAGE (Memory Fallback) ---
         const memStorage = {};
         function safeSetStorage(key, val) {
             try {
                 if(typeof localStorage !== 'undefined' && localStorage) {
                     localStorage.setItem(key, val);
                 } else { throw new Error("Blocked"); }
-            } catch(e) { memStorage[key] = val; }
+            } catch(e) {
+                memStorage[key] = val;
+            }
         }
         function safeGetStorage(key) {
             try {
                 if(typeof localStorage !== 'undefined' && localStorage) {
                     return localStorage.getItem(key);
                 } else { throw new Error("Blocked"); }
-            } catch(e) { return memStorage[key] || null; }
+            } catch(e) {
+                return memStorage[key] || null;
+            }
         }
 
-        // --- THEME LOGIC (CSS DRIVEN) ---
+        // --- HARD-CODED THEME LOGIC (Solves Ambiguity) ---
+        // We track "Light" preference explicitly. If ambiguous, assume Dark.
+        const systemLightQuery = window.matchMedia('(prefers-color-scheme: light)');
+
         function initTheme() {
             try {
                 const mode = safeGetStorage('h_theme_mode') || 'system';
@@ -192,16 +178,40 @@
         }
 
         function applyTheme(mode) {
-            // Remove existing overrides
-            document.body.classList.remove('force-light', 'force-dark');
+            let isLight = false;
 
             if (mode === 'light') {
-                document.body.classList.add('force-light');
+                isLight = true;
             } else if (mode === 'dark') {
-                document.body.classList.add('force-dark');
+                isLight = false;
+            } else {
+                // SYSTEM MODE LOGIC
+                // Only go Light if the browser EXPLICITLY confirms Light.
+                // If it returns false (Dark) or undefined (Unknown), we default to Dark.
+                if (systemLightQuery.matches) {
+                    isLight = true;
+                } else {
+                    isLight = false; 
+                }
             }
-            // If mode is 'system', we add NO classes. 
-            // The CSS @media query handles it automatically.
+
+            if (isLight) {
+                document.body.classList.add('light-mode');
+            } else {
+                document.body.classList.remove('light-mode');
+            }
+        }
+
+        // Live Listener: When system changes, re-run logic IF in system mode
+        function onSystemChange(e) {
+            const currentMode = safeGetStorage('h_theme_mode') || 'system';
+            if (currentMode === 'system') {
+                applyTheme('system');
+            }
+        }
+        
+        if (systemLightQuery.addEventListener) {
+            systemLightQuery.addEventListener('change', onSystemChange);
         }
 
         function setTheme(mode) {
@@ -216,6 +226,7 @@
                 if(btn) btn.className = "flex-1 p-2 rounded text-xs font-bold border theme-border transition theme-text-sub hover:bg-white/5"; 
             });
             const active = document.getElementById(`btn-theme-${mode}`);
+            // Use .theme-selected to get correct color (Green vs Blue)
             if(active) active.className = "flex-1 p-2 rounded text-xs font-bold border theme-border transition theme-selected shadow-lg";
         }
 
@@ -225,7 +236,7 @@
             safeSetStorage('h_contrast', document.body.classList.contains('high-contrast'));
             updateContrastToggle();
             
-            // Re-apply button colors so they refresh (Green vs Blue)
+            // Re-apply button highlights
             const mode = safeGetStorage('h_theme_mode') || 'system';
             updateThemeButtons(mode);
         }
