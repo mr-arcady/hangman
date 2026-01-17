@@ -129,7 +129,7 @@
     </div>
 
     <script>
-        // --- SAFE STORAGE (Memory Fallback) ---
+        // --- SAFE STORAGE ---
         const memStorage = {};
         function safeSetStorage(key, val) {
             try {
@@ -150,7 +150,10 @@
             }
         }
 
-        // --- THEME LOGIC ---
+        // --- ROBUST THEME LOGIC ---
+        // 1. Define the Dark Mode Query specifically
+        const systemDarkQuery = window.matchMedia('(prefers-color-scheme: dark)');
+
         function initTheme() {
             try {
                 const mode = safeGetStorage('h_theme_mode') || 'system';
@@ -165,15 +168,34 @@
         }
 
         function applyTheme(mode) {
-            let isLight = false;
-            if (mode === 'system') {
-                isLight = window.matchMedia('(prefers-color-scheme: light)').matches;
-            } else if (mode === 'light') {
-                isLight = true;
+            // Base CSS is DARK. We only add 'light-mode' if explicitly requested.
+            if (mode === 'light') {
+                document.body.classList.add('light-mode');
+            } else if (mode === 'dark') {
+                document.body.classList.remove('light-mode');
+            } else {
+                // System Mode: Check if System is Dark. 
+                // If System is Dark (true), remove light-mode. If False (Light), add light-mode.
+                if (systemDarkQuery.matches) {
+                    document.body.classList.remove('light-mode');
+                } else {
+                    document.body.classList.add('light-mode');
+                }
             }
+        }
 
-            if (isLight) document.body.classList.add('light-mode');
-            else document.body.classList.remove('light-mode');
+        // 2. System Change Listener
+        function onSystemChange(e) {
+            const currentMode = safeGetStorage('h_theme_mode') || 'system';
+            if (currentMode === 'system') {
+                // e.matches means System IS Dark
+                if (e.matches) document.body.classList.remove('light-mode');
+                else document.body.classList.add('light-mode');
+            }
+        }
+        // Attach listener safely
+        if (systemDarkQuery.addEventListener) {
+            systemDarkQuery.addEventListener('change', onSystemChange);
         }
 
         function setTheme(mode) {
@@ -188,21 +210,15 @@
                 if(btn) btn.className = "flex-1 p-2 rounded text-xs font-bold border theme-border transition theme-text-sub hover:bg-white/5"; 
             });
             const active = document.getElementById(`btn-theme-${mode}`);
-            if(active) active.className = "flex-1 p-2 rounded text-xs font-bold border theme-border transition theme-btn-success shadow-lg text-white";
+            if(active) active.className = "flex-1 p-2 rounded text-xs font-bold border theme-border transition theme-selected shadow-lg";
         }
-
-        window.matchMedia('(prefers-color-scheme: light)').addEventListener('change', e => {
-            if ((safeGetStorage('h_theme_mode') || 'system') === 'system') {
-                applyTheme('system');
-            }
-        });
 
         // --- CONTRAST LOGIC ---
         function toggleContrast() {
             document.body.classList.toggle('high-contrast');
             safeSetStorage('h_contrast', document.body.classList.contains('high-contrast'));
             updateContrastToggle();
-            // Re-apply button colors if contrast changed
+            // Re-apply button colors so they pick up Blue vs Green
             const mode = safeGetStorage('h_theme_mode') || 'system';
             updateThemeButtons(mode);
         }
