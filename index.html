@@ -151,8 +151,8 @@
         }
 
         // --- ROBUST THEME LOGIC ---
-        // 1. Define the Dark Mode Query specifically
-        const systemDarkQuery = window.matchMedia('(prefers-color-scheme: dark)');
+        // CHANGED: We now query for LIGHT mode. If true -> Light. If false/unknown -> Default Dark.
+        const systemLightQuery = window.matchMedia('(prefers-color-scheme: light)');
 
         function initTheme() {
             try {
@@ -168,34 +168,30 @@
         }
 
         function applyTheme(mode) {
-            // Base CSS is DARK. We only add 'light-mode' if explicitly requested.
             if (mode === 'light') {
                 document.body.classList.add('light-mode');
             } else if (mode === 'dark') {
                 document.body.classList.remove('light-mode');
             } else {
-                // System Mode: Check if System is Dark. 
-                // If System is Dark (true), remove light-mode. If False (Light), add light-mode.
-                if (systemDarkQuery.matches) {
-                    document.body.classList.remove('light-mode');
-                } else {
+                // System Mode: Default to DARK (base CSS) unless system explicitly requests Light.
+                if (systemLightQuery.matches) {
                     document.body.classList.add('light-mode');
+                } else {
+                    document.body.classList.remove('light-mode');
                 }
             }
         }
 
-        // 2. System Change Listener
         function onSystemChange(e) {
             const currentMode = safeGetStorage('h_theme_mode') || 'system';
             if (currentMode === 'system') {
-                // e.matches means System IS Dark
-                if (e.matches) document.body.classList.remove('light-mode');
-                else document.body.classList.add('light-mode');
+                if (e.matches) document.body.classList.add('light-mode');
+                else document.body.classList.remove('light-mode');
             }
         }
-        // Attach listener safely
-        if (systemDarkQuery.addEventListener) {
-            systemDarkQuery.addEventListener('change', onSystemChange);
+        
+        if (systemLightQuery.addEventListener) {
+            systemLightQuery.addEventListener('change', onSystemChange);
         }
 
         function setTheme(mode) {
@@ -210,6 +206,7 @@
                 if(btn) btn.className = "flex-1 p-2 rounded text-xs font-bold border theme-border transition theme-text-sub hover:bg-white/5"; 
             });
             const active = document.getElementById(`btn-theme-${mode}`);
+            // FIXED: Uses 'theme-selected' for dynamic coloring (Blue/Green)
             if(active) active.className = "flex-1 p-2 rounded text-xs font-bold border theme-border transition theme-selected shadow-lg";
         }
 
@@ -218,7 +215,6 @@
             document.body.classList.toggle('high-contrast');
             safeSetStorage('h_contrast', document.body.classList.contains('high-contrast'));
             updateContrastToggle();
-            // Re-apply button colors so they pick up Blue vs Green
             const mode = safeGetStorage('h_theme_mode') || 'system';
             updateThemeButtons(mode);
         }
